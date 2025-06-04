@@ -1,0 +1,96 @@
+<!-- frontend/index.html - Telegram Mini App Interface (Signals Dashboard) -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Scalping Signals Bot Interface</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 20px; }
+    h1 { text-align: center; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid #aaa; padding: 8px; text-align: center; }
+    th { background: #ddd; }
+    tr:nth-child(even) { background: #f9f9f9; }
+    .win { color: green; font-weight: bold; }
+    .loss { color: red; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>Scalping Signals Dashboard</h1>
+  <p>Latest signals:</p>
+  <table id="signalsTable">
+    <thead>
+      <tr>
+        <th>Time</th>
+        <th>Asset</th>
+        <th>Direction</th>
+        <th>Amount</th>
+        <th>Result</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Signal rows will be populated here by the script -->
+    </tbody>
+  </table>
+
+  <script>
+    // Fetch signals from the API and update the table
+    async function fetchSignals() {
+      try {
+        const response = await fetch('/api/signals');
+        const signals = await response.json();
+        const tbody = document.getElementById('signalsTable').querySelector('tbody');
+        tbody.innerHTML = "";  // Clear existing rows
+        // Populate the table with the latest signals
+        signals.forEach(sig => {
+          const row = document.createElement('tr');
+          // Time
+          const timeCell = document.createElement('td');
+          timeCell.textContent = sig.time;
+          row.appendChild(timeCell);
+          // Asset
+          const assetCell = document.createElement('td');
+          assetCell.textContent = sig.asset;
+          row.appendChild(assetCell);
+          // Direction
+          const dirCell = document.createElement('td');
+          if (sig.direction === "CALL") {
+            dirCell.textContent = "CALL \u25B2";  // up arrow symbol
+            dirCell.style.color = "green";
+          } else if (sig.direction === "PUT") {
+            dirCell.textContent = "PUT \u25BC";  // down arrow symbol
+            dirCell.style.color = "red";
+          } else {
+            dirCell.textContent = sig.direction;
+          }
+          row.appendChild(dirCell);
+          // Amount
+          const amtCell = document.createElement('td');
+          amtCell.textContent = "$" + sig.amount.toFixed(2);
+          row.appendChild(amtCell);
+          // Result
+          const resCell = document.createElement('td');
+          if (sig.result === "WIN") {
+            resCell.textContent = "WIN";
+            resCell.className = "win";
+          } else if (sig.result === "LOSS") {
+            resCell.textContent = "LOSS";
+            resCell.className = "loss";
+          } else {
+            resCell.textContent = sig.result ? sig.result : "Pending";
+          }
+          row.appendChild(resCell);
+          tbody.appendChild(row);
+        });
+      } catch (error) {
+        console.error("Error fetching signals:", error);
+      }
+    }
+
+    // Initial load and periodic refresh every 5 seconds
+    fetchSignals();
+    setInterval(fetchSignals, 5000);
+  </script>
+</body>
+</html>

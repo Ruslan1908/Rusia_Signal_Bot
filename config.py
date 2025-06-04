@@ -11,7 +11,7 @@ WEBAPP_URL = "ngrok http http://localhost:8080"
 USE_REAL_DATA = False
 
 # PocketOption API configuration (if USE_REAL_DATA is True)
-POCKETOPTION_SSID = "AAbfUmAoUegBslLQr"    # Your PocketOption session ID 102042762 for API login (if required)
+POCKETOPTION_SSID = "AAbfUmAoUegBslLQr"    # Your PocketOption session ID for API login (if required)
 USE_DEMO_BALANCE = True   # If using PocketOption, whether to use demo (practice) or real balance
 
 # Trading parameters

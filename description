@@ -1,0 +1,59 @@
+Rusia_Signal_Bot/
+├── .gitignore
+├── README.md
+├── requirements.txt
+├── config.py
+├── bot.py
+├── main.py
+├── strategy.py
+├── money.py
+├── data_provider.py
+├── tradingview_provider.py
+├── storage.py
+├── models.py
+├── app_server.py
+├── subscribers.txt
+│
+├── frontend/
+│   ├── index.html
+│   ├── analytics.html
+│   ├── styles.css
+│   └── scripts.js
+│
+└── db/
+    └── signals.db
+
+
+
+🔧 Описание основных модулей
+config.py — все настройки (токен бота, WebApp URL, параметры стратегии, пути и т. д.).
+
+bot.py — реализация Telegram-бота (команды, подписка, рассылка).
+
+main.py — точка входа: старт бота (polling) и Flask-сервера.
+
+strategy.py — алгоритмы генерации сигналов (локальный экстремум, RSI+MA).
+
+money.py — логика мани-менеджмента (Martingale, фиксированные ставки).
+
+data_provider.py — получение данных: симуляция (DummyDataProvider) и PocketOption (реальные данные).
+
+tradingview_provider.py — (опционально) провайдер сигналов с TradingView через WebSocket.
+
+storage.py — сохранение сигналов в SQLite через SQLAlchemy.
+
+models.py — определения моделей данных (Signal, User и др.).
+
+app_server.py — Flask-сервер: отдача WebApp и API для сигналов.
+
+frontend/ — статические файлы WebApp (HTML, CSS, JS).
+
+db/signals.db — SQLite-файл с историей сигналов.
+
+📚 Дополнительные материалы
+Документация PyTelegramBotAPI
+
+Документация Flask
+
+Chart.js: примеры графиков
+

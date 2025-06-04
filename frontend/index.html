@@ -151,7 +151,6 @@
     <tbody></tbody>
   </table>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
     let resultsChart;
 
@@ -198,7 +197,7 @@
           `;
           tbody.appendChild(row);
 
-          // мини-график
+          // мини-график (рандомный пример)
           const miniData = Array.from({ length: 10 }, () => {
             const base = sig.entry_price;
             const noise = Math.random() * 0.0005;
@@ -227,6 +226,7 @@
           });
         });
 
+        // Можно добавить дополнительную аналитику
         updateChart(filteredSignals);
       } catch (error) {
         console.error("Ошибка при загрузке сигналов:", error);
@@ -234,7 +234,7 @@
     }
 
     function updateChart(signals) {
-      // optional: можно сделать общую аналитику, если нужно
+      // Опционально: общая аналитика на странице
     }
 
     window.onload = () => {
@@ -243,6 +243,7 @@
       document.getElementById("directionSelect").value = localStorage.getItem("filter_direction") || "ALL";
       document.getElementById("limitSelect").value = localStorage.getItem("filter_limit") || "50";
       fetchSignals();
+      // Обновлять каждые 5 секунд
       setInterval(fetchSignals, 5000);
     };
   </script>

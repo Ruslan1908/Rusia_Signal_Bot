@@ -5,10 +5,10 @@ TELEGRAM_BOT_TOKEN = "8197508817:AAHWAFPEJljOUiC79-Ihv2rxBVu7OYVenvU"
 
 # URL for the Telegram Web App (Mini App) interface
 # Use an HTTPS URL of your server where the web interface is hosted.
-WEBAPP_URL = "ngrok http http://localhost:8080"
+WEBAPP_URL = "https://rusia-signal-bot.onrender.com"
 
 # Toggle between using real PocketOption data or dummy simulated data
-USE_REAL_DATA = False
+USE_REAL_DATA = True
 
 # PocketOption API configuration (if USE_REAL_DATA is True)
 POCKETOPTION_SSID = "AAbfUmAoUegBslLQr"    # Your PocketOption session ID for API login (if required)

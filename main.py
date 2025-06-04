@@ -9,6 +9,8 @@ from money import MoneyManager
 from data_provider import DummyDataProvider, PocketOptionDataProvider
 import bot
 import app_server
+from flask import Flask
+app = Flask(__name__)
 
 if __name__ == "__main__":
     # Configure logging for the entire application

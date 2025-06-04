@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Аналитика сигналов</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #1e1e1e;
+      color: #eee;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #4caf50;
+    }
+
+    .chart-container {
+      max-width: 900px;
+      margin: 0 auto 40px;
+      background: #2c2c2c;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    }
+
+    canvas {
+      background: #fff;
+      border-radius: 8px;
+    }
+
+    button {
+      display: block;
+      margin: 0 auto 30px;
+      background: #2196f3;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <button onclick="location.href='/'">← Назад к дашборду</button>
+  <h1>Аналитика сигналов</h1>
+
+  <div class="chart-container">
+    <h2>Win Rate (в %)</h2>
+    <canvas id="winsChart" height="150"></canvas>
+  </div>
+
+  <div class="chart-container">
+    <h2>Активность (сколько сигналов в день)</h2>
+    <canvas id="activityChart" height="150"></canvas>
+  </div>
+
+  <script>
+    async function load() {
+      const res = await fetch("/api/signals?limit=200");
+      const data = await res.json();
+
+      const dailyStats = {};
+      data.forEach(sig => {
+        const date = sig.time.split(" ")[0];
+        if (!dailyStats[date]) dailyStats[date] = { win: 0, total: 0 };
+        if (sig.result === "WIN") dailyStats[date].win++;
+        if (sig.result) dailyStats[date].total++;
+      });
+
+      const labels = Object.keys(dailyStats).sort();
+      const winRates = labels.map(d => {
+        const s = dailyStats[d];
+        return s.total ? Math.round((s.win / s.total) * 100) : 0;
+      });
+      const totalCounts = labels.map(d => dailyStats[d].total);
+
+      new Chart(document.getElementById("winsChart"), {
+        type: "line",
+        data: {
+          labels,
+          datasets: [{
+            label: "Win Rate (%)",
+            data: winRates,
+            borderColor: "#4caf50",
+            backgroundColor: "rgba(76, 175, 80, 0.1)",
+            fill: true,
+            tension: 0.3
+          }]
+        },
+        options: {
+          scales: {
+            y: { beginAtZero: true, max: 100 }
+          }
+        }
+      });
+
+      new Chart(document.getElementById("activityChart"), {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [{
+            label: "Сигналов",
+            data: totalCounts,
+            backgroundColor: "#2196f3"
+          }]
+        },
+        options: {
+          scales: {
+            y: { beginAtZero: true }
+          }
+        }
+      });
+    }
+
+    load();
+  </script>
+</body>
+</html>

@@ -1,96 +1,250 @@
-<!-- frontend/index.html - Telegram Mini App Interface (Signals Dashboard) -->
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Scalping Signals Bot Interface</title>
+  <title>Rusia Signals WebApp</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 20px; }
-    h1 { text-align: center; }
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    th, td { border: 1px solid #aaa; padding: 8px; text-align: center; }
-    th { background: #ddd; }
-    tr:nth-child(even) { background: #f9f9f9; }
-    .win { color: green; font-weight: bold; }
-    .loss { color: red; font-weight: bold; }
+    :root {
+      --bg-light: #f5f7fa;
+      --bg-dark: #1e1e1e;
+      --text-light: #333;
+      --text-dark: #eee;
+      --primary: #4caf50;
+      --danger: #f44336;
+      --accent: #2196f3;
+      --border-radius: 12px;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: var(--bg-light);
+      color: var(--text-light);
+      margin: 0;
+      padding: 20px;
+      transition: all 0.3s ease;
+    }
+
+    body.dark {
+      background: var(--bg-dark);
+      color: var(--text-dark);
+    }
+
+    h1, h2 {
+      text-align: center;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .top-bar button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: var(--border-radius);
+      background-color: var(--accent);
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .filter-panel {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 15px;
+    }
+
+    select, button {
+      padding: 8px;
+      border-radius: var(--border-radius);
+      border: 1px solid #ccc;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      border-radius: var(--border-radius);
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+      text-align: center;
+    }
+
+    th {
+      background-color: #e9ecef;
+    }
+
+    .dark th {
+      background-color: #2c2c2c;
+    }
+
+    .win {
+      color: var(--primary);
+      font-weight: bold;
+    }
+
+    .loss {
+      color: var(--danger);
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
-  <h1>Scalping Signals Dashboard</h1>
-  <p>Latest signals:</p>
+  <div class="top-bar">
+    <h1>Rusia Signal Bot — Dashboard</h1>
+    <div>
+      <button onclick="toggleTheme()">🌜/🌞</button>
+      <button onclick="location.href='/analytics'">📊 Аналитика</button>
+    </div>
+  </div>
+
+  <div class="filter-panel">
+    <label>Актив:
+      <select id="assetSelect" onchange="fetchSignals()">
+        <option value="ALL">Все</option>
+        <option value="EURUSD">EURUSD</option>
+        <option value="GBPUSD">GBPUSD</option>
+        <option value="USDJPY">USDJPY</option>
+      </select>
+    </label>
+
+    <label>Направление:
+      <select id="directionSelect" onchange="fetchSignals()">
+        <option value="ALL">Все</option>
+        <option value="CALL">CALL ↑</option>
+        <option value="PUT">PUT ↓</option>
+      </select>
+    </label>
+
+    <label>Показать:
+      <select id="limitSelect" onchange="fetchSignals()">
+        <option value="20">20</option>
+        <option value="50" selected>50</option>
+        <option value="100">100</option>
+        <option value="200">200</option>
+      </select>
+    </label>
+    <button onclick="fetchSignals()">Обновить</button>
+  </div>
+
   <table id="signalsTable">
     <thead>
       <tr>
-        <th>Time</th>
-        <th>Asset</th>
-        <th>Direction</th>
-        <th>Amount</th>
-        <th>Result</th>
+        <th>Время</th>
+        <th>Актив</th>
+        <th>Направление</th>
+        <th>Сумма</th>
+        <th>Результат</th>
+        <th>Мини-график</th>
       </tr>
     </thead>
-    <tbody>
-      <!-- Signal rows will be populated here by the script -->
-    </tbody>
+    <tbody></tbody>
   </table>
 
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
-    // Fetch signals from the API and update the table
+    let resultsChart;
+
+    function toggleTheme() {
+      document.body.classList.toggle("dark");
+      const isDark = document.body.classList.contains("dark");
+      localStorage.setItem("theme", isDark ? "dark" : "light");
+    }
+
     async function fetchSignals() {
+      const assetFilter = document.getElementById('assetSelect').value;
+      const directionFilter = document.getElementById('directionSelect').value;
+      const limit = document.getElementById('limitSelect').value;
+
+      // сохраняем фильтры
+      localStorage.setItem("filter_asset", assetFilter);
+      localStorage.setItem("filter_direction", directionFilter);
+      localStorage.setItem("filter_limit", limit);
+
       try {
-        const response = await fetch('/api/signals');
+        const response = await fetch(`/api/signals?limit=${limit}`);
         const signals = await response.json();
-        const tbody = document.getElementById('signalsTable').querySelector('tbody');
-        tbody.innerHTML = "";  // Clear existing rows
-        // Populate the table with the latest signals
-        signals.forEach(sig => {
-          const row = document.createElement('tr');
-          // Time
-          const timeCell = document.createElement('td');
-          timeCell.textContent = sig.time;
-          row.appendChild(timeCell);
-          // Asset
-          const assetCell = document.createElement('td');
-          assetCell.textContent = sig.asset;
-          row.appendChild(assetCell);
-          // Direction
-          const dirCell = document.createElement('td');
-          if (sig.direction === "CALL") {
-            dirCell.textContent = "CALL \u25B2";  // up arrow symbol
-            dirCell.style.color = "green";
-          } else if (sig.direction === "PUT") {
-            dirCell.textContent = "PUT \u25BC";  // down arrow symbol
-            dirCell.style.color = "red";
-          } else {
-            dirCell.textContent = sig.direction;
-          }
-          row.appendChild(dirCell);
-          // Amount
-          const amtCell = document.createElement('td');
-          amtCell.textContent = "$" + sig.amount.toFixed(2);
-          row.appendChild(amtCell);
-          // Result
-          const resCell = document.createElement('td');
-          if (sig.result === "WIN") {
-            resCell.textContent = "WIN";
-            resCell.className = "win";
-          } else if (sig.result === "LOSS") {
-            resCell.textContent = "LOSS";
-            resCell.className = "loss";
-          } else {
-            resCell.textContent = sig.result ? sig.result : "Pending";
-          }
-          row.appendChild(resCell);
-          tbody.appendChild(row);
+
+        const filteredSignals = signals.filter(sig => {
+          const assetMatch = assetFilter === "ALL" || sig.asset === assetFilter;
+          const dirMatch = directionFilter === "ALL" || sig.direction === directionFilter;
+          return assetMatch && dirMatch;
         });
+
+        const tbody = document.querySelector('#signalsTable tbody');
+        tbody.innerHTML = "";
+
+        filteredSignals.forEach((sig, i) => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${sig.time}</td>
+            <td>${sig.asset}</td>
+            <td style="color:${sig.direction === 'CALL' ? 'green' : 'red'}">${sig.direction}</td>
+            <td>$${sig.amount.toFixed(2)}</td>
+            <td class="${sig.result === 'WIN' ? 'win' : sig.result === 'LOSS' ? 'loss' : ''}">
+              ${sig.result || "Ожидается"}
+            </td>
+            <td><canvas id="chart_${i}" width="100" height="30"></canvas></td>
+          `;
+          tbody.appendChild(row);
+
+          // мини-график
+          const miniData = Array.from({ length: 10 }, () => {
+            const base = sig.entry_price;
+            const noise = Math.random() * 0.0005;
+            return base + (Math.random() > 0.5 ? noise : -noise);
+          });
+
+          const ctx = document.getElementById(`chart_${i}`).getContext('2d');
+          new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: miniData.map((_, j) => j),
+              datasets: [{
+                data: miniData,
+                borderColor: sig.direction === "CALL" ? "green" : "red",
+                borderWidth: 1,
+                pointRadius: 0,
+                fill: false,
+                tension: 0.3
+              }]
+            },
+            options: {
+              responsive: false,
+              scales: { x: { display: false }, y: { display: false } },
+              plugins: { legend: { display: false }, tooltip: { enabled: false } }
+            }
+          });
+        });
+
+        updateChart(filteredSignals);
       } catch (error) {
-        console.error("Error fetching signals:", error);
+        console.error("Ошибка при загрузке сигналов:", error);
       }
     }
 
-    // Initial load and periodic refresh every 5 seconds
-    fetchSignals();
-    setInterval(fetchSignals, 5000);
+    function updateChart(signals) {
+      // optional: можно сделать общую аналитику, если нужно
+    }
+
+    window.onload = () => {
+      document.body.classList.toggle("dark", localStorage.getItem("theme") === "dark");
+      document.getElementById("assetSelect").value = localStorage.getItem("filter_asset") || "ALL";
+      document.getElementById("directionSelect").value = localStorage.getItem("filter_direction") || "ALL";
+      document.getElementById("limitSelect").value = localStorage.getItem("filter_limit") || "50";
+      fetchSignals();
+      setInterval(fetchSignals, 5000);
+    };
   </script>
 </body>
 </html>
